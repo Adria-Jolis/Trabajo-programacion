@@ -14,7 +14,7 @@
 
 \hypersetup{colorlinks=true, linkcolor=blue!50!black, urlcolor=blue!50!black}
 
-% ---------- Estilo para código Java ----------
+
 \lstdefinestyle{javastyle}{
   language=Java,
   basicstyle=\ttfamily\footnotesize,
@@ -47,7 +47,7 @@
 \tableofcontents
 \newpage
 
-% =====================================================
+
 \section{Introducción y objetivo}
 Un equipo de ciberseguridad necesita un programa que analice la actividad de
 \textbf{dos servidores independientes}. Cada servidor recibe intentos de
@@ -64,7 +64,7 @@ utilizado únicamente los conocimientos permitidos: variables, tipos básicos,
 métodos de \texttt{String}, \texttt{Scanner}, operadores lógicos y aritméticos,
 condicionales, métodos, clases, objetos y \texttt{printf()}.
 
-% =====================================================
+
 \section{Diseño orientado a objetos}
 
 \subsection{Clase \texttt{Servidor}}
@@ -116,7 +116,7 @@ llama dos veces a este método, por lo que se obtienen \textbf{dos objetos
 distintos e independientes} (\texttt{a} y \texttt{b}), cada uno con su propia
 zona de memoria y sus propios valores.
 
-% =====================================================
+
 \section{Entrada de datos y tratamiento del texto}
 Todos los datos se leen con \texttt{sc.nextLine()}. Los campos numéricos se
 leen como texto y se convierten con \texttt{Integer.parseInt(...)}, aplicando
@@ -136,7 +136,7 @@ principio y al final) junto con \texttt{equalsIgnoreCase()} (ignora
 mayúsculas), tal como pide el enunciado. Así, entradas como
 \texttt{"\ EXTERNO\ "} o \texttt{"\ SI\ "} se interpretan correctamente.
 
-% =====================================================
+
 \section{Validación de datos}
 El método \texttt{datosValidos()} devuelve \texttt{false} en cuanto una regla
 falla y \texttt{true} solo si se cumplen todas:
@@ -156,7 +156,7 @@ if (intentosFallidos < 0 || intentosFallidos > intentosTotales) {
 }
 \end{lstlisting}
 
-% =====================================================
+
 \section{Clasificación del riesgo}
 \texttt{evaluarEstado()} primero llama a \texttt{datosValidos()}; si falla,
 devuelve \texttt{DATOS INVALIDOS} sin clasificar. Si los datos son válidos, se
@@ -193,7 +193,6 @@ if (intentosFallidos >= 3
 return "NORMAL";
 \end{lstlisting}
 
-% =====================================================
 \section{Porcentaje de fallos y resumen}
 El porcentaje se calcula como
 \[
@@ -212,7 +211,7 @@ muestra el porcentaje con un decimal (se usa \texttt{Locale.US} para que el
 separador decimal sea siempre un punto); con datos inválidos se escribe
 \texttt{N/D} y \textbf{no se efectúa ninguna división}.
 
-% =====================================================
+
 \section{Comparación entre los dos servidores}
 En \texttt{main()} la comparación se resuelve mediante condiciones y el método
 \texttt{nivelPrioridad()}, sin respuestas fijas:
@@ -235,7 +234,7 @@ if (!a.datosValidos() || !b.datosValidos()) {
 }
 \end{lstlisting}
 
-% =====================================================
+
 \section{Pruebas}
 
 \subsection{Ejemplo de ejecución del enunciado}
@@ -286,7 +285,7 @@ WEB    & externo & quizás & 10 & 2 & N/D   & DATOS INVALIDOS & DATOS INVALIDOS 
   \item Con 5 fallos sobre 5 intentos (extremo incluido) los datos son válidos y el porcentaje es 100.0\%.
 \end{itemize}
 
-% =====================================================
+
 \section{Cumplimiento de las restricciones}
 \begin{itemize}[nosep]
   \item Un único archivo \texttt{Main.java} con \texttt{class Servidor} y \texttt{public class Main}.
@@ -295,35 +294,3 @@ WEB    & externo & quizás & 10 & 2 & N/D   & DATOS INVALIDOS & DATOS INVALIDOS 
   \item Sin modificadores de encapsulación (\texttt{private}, \texttt{public} en atributos, \textit{getters}/\textit{setters}).
   \item Los datos numéricos se introducen como enteros.
 \end{itemize}
-
-% =====================================================
-\section{Preguntas conceptuales}
-
-\paragraph{1. ¿Por qué dos objetos de la misma clase pueden almacenar valores diferentes en sus atributos?}
-Porque la clase es solo la plantilla que define qué atributos existen. Cada
-objeto creado con \texttt{new} reserva su propia zona de memoria, con su propia
-copia de los atributos, por lo que modificar uno no afecta al otro.
-
-\paragraph{2. ¿Qué diferencia existe entre \texttt{Servidor b = a;} y \texttt{Servidor b = new Servidor();}?}
-\texttt{Servidor b = a;} no crea ningún objeto nuevo: copia la referencia, de
-modo que \texttt{a} y \texttt{b} apuntan al mismo objeto y un cambio hecho
-desde \texttt{b} se ve desde \texttt{a}. \texttt{Servidor b = new Servidor();}
-crea un objeto nuevo e independiente, con sus propios atributos.
-
-\paragraph{3. ¿Por qué es importante comprobar \texttt{datosValidos()} antes de calcular el porcentaje?}
-Porque con datos inválidos el cálculo no tiene sentido o falla: si
-\texttt{intentosTotales} es 0 se produciría una división por cero, y si los
-fallidos son negativos o mayores que el total el porcentaje sería incoherente
-(negativo o superior al 100\%).
-
-% =====================================================
-\section{Conclusiones}
-El programa cumple los requisitos del enunciado: separa responsabilidades en
-una clase \texttt{Servidor} con métodos propios, valida los datos antes de
-clasificarlos, respeta el orden de prioridad de las reglas, trata de forma
-segura los datos inválidos y compara los dos servidores mediante condiciones y
-no con respuestas fijas. El uso de \texttt{nextLine()} con conversión a entero y
-de \texttt{trim()}/\texttt{equalsIgnoreCase()} hace la entrada robusta frente a
-espacios y mayúsculas.
-
-\end{document}
