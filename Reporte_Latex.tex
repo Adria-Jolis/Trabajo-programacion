@@ -1,0 +1,329 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla]{babel}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{enumitem}
+
+\hypersetup{colorlinks=true, linkcolor=blue!50!black, urlcolor=blue!50!black}
+
+% ---------- Estilo para código Java ----------
+\lstdefinestyle{javastyle}{
+  language=Java,
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{blue!60!black}\bfseries,
+  commentstyle=\color{green!40!black}\itshape,
+  stringstyle=\color{red!60!black},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  frame=single,
+  rulecolor=\color{gray!60},
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=4,
+  literate={á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+           {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+           {ñ}{{\~n}}1 {¿}{{?`}}1 {¡}{{!`}}1
+}
+\lstset{style=javastyle}
+
+\title{\textbf{Actividad evaluativa \#1}\\[4pt]
+\large Centro de monitoreo de accesos\\[4pt]
+\large Reporte técnico del programa \texttt{Main.java}}
+\author{Adrià Jolis \\ 2.º curso -- Ciberseguridad -- Java\\[6pt]
+\textbf{Estudiante:} \underline{\hspace{6cm}}}
+\date{23 de octubre de 2026}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+% =====================================================
+\section{Introducción y objetivo}
+Un equipo de ciberseguridad necesita un programa que analice la actividad de
+\textbf{dos servidores independientes}. Cada servidor recibe intentos de
+autenticación y el sistema debe:
+\begin{enumerate}[nosep]
+  \item validar los registros introducidos,
+  \item clasificar el riesgo de cada servidor (\texttt{BLOQUEADO}, \texttt{ALERTA}, \texttt{NORMAL} o \texttt{DATOS INVALIDOS}),
+  \item determinar cuál de los dos requiere atención prioritaria.
+\end{enumerate}
+
+El programa se ha implementado en Java en un único archivo \texttt{Main.java}
+que contiene la clase \texttt{Servidor} y la clase pública \texttt{Main}. Se han
+utilizado únicamente los conocimientos permitidos: variables, tipos básicos,
+métodos de \texttt{String}, \texttt{Scanner}, operadores lógicos y aritméticos,
+condicionales, métodos, clases, objetos y \texttt{printf()}.
+
+% =====================================================
+\section{Diseño orientado a objetos}
+
+\subsection{Clase \texttt{Servidor}}
+La clase modela un servidor mediante cinco atributos de instancia:
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Atributo} & \textbf{Tipo} & \textbf{Significado} \\
+\midrule
+\texttt{nombre}           & \texttt{String} & Nombre del servidor \\
+\texttt{origen}           & \texttt{String} & \texttt{interno} o \texttt{externo} \\
+\texttt{critico}          & \texttt{String} & \texttt{si} o \texttt{no} \\
+\texttt{intentosTotales}  & \texttt{int}    & Total de intentos de autenticación \\
+\texttt{intentosFallidos} & \texttt{int}    & Intentos fallidos \\
+\bottomrule
+\end{tabular}
+\caption{Atributos de instancia de la clase \texttt{Servidor}.}
+\end{table}
+
+Los métodos exigidos por el enunciado son:
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{@{}>{\ttfamily}l p{9.5cm}@{}}
+\toprule
+\textbf{Método} & \textbf{Responsabilidad} \\
+\midrule
+boolean datosValidos()  & Comprueba todas las reglas de validación. \\
+String evaluarEstado()  & Valida y devuelve el estado del servidor. \\
+double porcentajeFallos() & Calcula el porcentaje de fallos; solo se usa con datos válidos. \\
+void mostrarResumen()   & Imprime nombre, fallos/total, porcentaje (o \texttt{N/D}) y estado. \\
+\bottomrule
+\end{tabular}
+\caption{Métodos exigidos por el enunciado.}
+\end{table}
+
+Además, se añadió un método auxiliar, \texttt{int nivelPrioridad()}, que
+convierte el estado en un número (\texttt{BLOQUEADO}=3, \texttt{ALERTA}=2,
+\texttt{NORMAL}=1, \texttt{DATOS INVALIDOS}=0) para poder comparar dos
+servidores con operadores relacionales sencillos.
+
+\subsection{Clase \texttt{Main}}
+Contiene el método \texttt{main()} y el método estático auxiliar
+\texttt{leerServidor(Scanner, int)}, que lee por consola los cinco datos de un
+servidor y devuelve un objeto \texttt{Servidor} nuevo. En \texttt{main()} se
+llama dos veces a este método, por lo que se obtienen \textbf{dos objetos
+distintos e independientes} (\texttt{a} y \texttt{b}), cada uno con su propia
+zona de memoria y sus propios valores.
+
+% =====================================================
+\section{Entrada de datos y tratamiento del texto}
+Todos los datos se leen con \texttt{sc.nextLine()}. Los campos numéricos se
+leen como texto y se convierten con \texttt{Integer.parseInt(...)}, aplicando
+\texttt{trim()} antes:
+
+\begin{lstlisting}
+System.out.print("Intentos totales: ");
+s.intentosTotales = Integer.parseInt(sc.nextLine().trim());
+\end{lstlisting}
+
+Esta decisión evita el problema clásico del \textbf{salto de línea pendiente}
+que deja \texttt{nextInt()} en el búfer y que provocaría que la siguiente
+lectura con \texttt{nextLine()} devolviera una cadena vacía.
+
+Para las comparaciones de texto se usa \texttt{trim()} (elimina espacios al
+principio y al final) junto con \texttt{equalsIgnoreCase()} (ignora
+mayúsculas), tal como pide el enunciado. Así, entradas como
+\texttt{"\ EXTERNO\ "} o \texttt{"\ SI\ "} se interpretan correctamente.
+
+% =====================================================
+\section{Validación de datos}
+El método \texttt{datosValidos()} devuelve \texttt{false} en cuanto una regla
+falla y \texttt{true} solo si se cumplen todas:
+
+\begin{enumerate}[nosep]
+  \item \textbf{Nombre:} no es \texttt{null} y \texttt{nombre.trim().isEmpty()} es falso (al menos un carácter que no sea espacio).
+  \item \textbf{Origen y criticidad:} \texttt{origen} es \texttt{interno} o \texttt{externo}; \texttt{critico} es \texttt{si} o \texttt{no}.
+  \item \textbf{Intentos:} \texttt{intentosTotales > 0} y \texttt{0 <= intentosFallidos <= intentosTotales} (extremos incluidos).
+\end{enumerate}
+
+\begin{lstlisting}
+if (intentosTotales <= 0) {
+    return false;
+}
+if (intentosFallidos < 0 || intentosFallidos > intentosTotales) {
+    return false;
+}
+\end{lstlisting}
+
+% =====================================================
+\section{Clasificación del riesgo}
+\texttt{evaluarEstado()} primero llama a \texttt{datosValidos()}; si falla,
+devuelve \texttt{DATOS INVALIDOS} sin clasificar. Si los datos son válidos, se
+normalizan una sola vez dos booleanos (\texttt{esExterno}, \texttt{esCritico})
+y se aplican las reglas \textbf{en orden de prioridad}:
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{@{}c l p{9cm}@{}}
+\toprule
+\textbf{Orden} & \textbf{Estado} & \textbf{Condición} \\
+\midrule
+1 & \texttt{BLOQUEADO} & 5 o más fallos; o crítico, externo y al menos 3 fallos. \\
+2 & \texttt{ALERTA}    & 3 o 4 fallos; o externo con al menos 2 fallos (solo si no es \texttt{BLOQUEADO}). \\
+3 & \texttt{NORMAL}    & Datos válidos que no cumplen las condiciones anteriores. \\
+\bottomrule
+\end{tabular}
+\caption{Reglas de clasificación.}
+\end{table}
+
+El orden de los \texttt{if} garantiza la prioridad: como \texttt{BLOQUEADO} se
+comprueba primero y cada condición termina con \texttt{return}, la regla de
+\texttt{ALERTA} solo se evalúa cuando el servidor no está bloqueado.
+
+\begin{lstlisting}
+if (intentosFallidos >= 5
+        || (esCritico && esExterno && intentosFallidos >= 3)) {
+    return "BLOQUEADO";
+}
+if (intentosFallidos >= 3
+        || (esExterno && intentosFallidos >= 2)) {
+    return "ALERTA";
+}
+return "NORMAL";
+\end{lstlisting}
+
+% =====================================================
+\section{Porcentaje de fallos y resumen}
+El porcentaje se calcula como
+\[
+  \text{porcentaje} = \frac{\text{intentosFallidos} \times 100}{\text{intentosTotales}}
+\]
+usando un \textit{cast} a \texttt{double} para evitar la división entera, que
+truncaría el resultado:
+
+\begin{lstlisting}
+return (double) intentosFallidos * 100 / intentosTotales;
+\end{lstlisting}
+
+\texttt{mostrarResumen()} imprime con \texttt{printf} el formato
+\texttt{nombre | fallidos/total | porcentaje | estado}. Con datos válidos se
+muestra el porcentaje con un decimal (se usa \texttt{Locale.US} para que el
+separador decimal sea siempre un punto); con datos inválidos se escribe
+\texttt{N/D} y \textbf{no se efectúa ninguna división}.
+
+% =====================================================
+\section{Comparación entre los dos servidores}
+En \texttt{main()} la comparación se resuelve mediante condiciones y el método
+\texttt{nivelPrioridad()}, sin respuestas fijas:
+
+\begin{enumerate}[nosep]
+  \item Si alguno de los dos tiene datos inválidos $\rightarrow$ \texttt{COMPARACION NO DISPONIBLE}.
+  \item Si ambos tienen el mismo nivel $\rightarrow$ \texttt{IGUAL PRIORIDAD}.
+  \item En otro caso $\rightarrow$ \texttt{ATENCION PRIORITARIA:} seguido del nombre del servidor con mayor nivel.
+\end{enumerate}
+
+\begin{lstlisting}
+if (!a.datosValidos() || !b.datosValidos()) {
+    System.out.println("COMPARACION NO DISPONIBLE");
+} else if (a.nivelPrioridad() == b.nivelPrioridad()) {
+    System.out.println("IGUAL PRIORIDAD");
+} else if (a.nivelPrioridad() > b.nivelPrioridad()) {
+    System.out.println("ATENCION PRIORITARIA: " + a.nombre.trim());
+} else {
+    System.out.println("ATENCION PRIORITARIA: " + b.nombre.trim());
+}
+\end{lstlisting}
+
+% =====================================================
+\section{Pruebas}
+
+\subsection{Ejemplo de ejecución del enunciado}
+Entradas: \texttt{VPN / EXTERNO / SI / 10 / 3} y \texttt{CORREO / interno / no / 12 / 3}.
+
+\begin{lstlisting}[numbers=none]
+========== REPORTE DE SEGURIDAD ==========
+VPN | 3/10 | 30.0% | BLOQUEADO
+CORREO | 3/12 | 25.0% | ALERTA
+ATENCION PRIORITARIA: VPN
+\end{lstlisting}
+
+\noindent Razonamiento: \texttt{VPN} es crítico, externo y tiene 3 fallos
+$\Rightarrow$ \texttt{BLOQUEADO}; \texttt{CORREO} es interno, no crítico y tiene
+3 fallos $\Rightarrow$ \texttt{ALERTA}. Como \texttt{BLOQUEADO} $>$
+\texttt{ALERTA}, la atención prioritaria es para \texttt{VPN}.
+
+\subsection{Casos de prueba obligatorios}
+Cada fila es una prueba independiente de un objeto \texttt{Servidor}. El
+resultado obtenido coincide con el esperado en los nueve casos.
+
+\begin{table}[h!]
+\centering
+\small
+\begin{tabular}{@{}llllrrlll@{}}
+\toprule
+\textbf{Nombre} & \textbf{Origen} & \textbf{Crítico} & \textbf{Total} & \textbf{Fallos} & \textbf{\%} & \textbf{Esperado} & \textbf{Obtenido} \\
+\midrule
+VPN    & externo & si     & 10 & 3 & 30.0  & BLOQUEADO & BLOQUEADO \\
+WEB    & interno & no     & 8  & 4 & 50.0  & ALERTA    & ALERTA \\
+CORREO & externo & no     & 8  & 2 & 25.0  & ALERTA    & ALERTA \\
+VPN    & interno & si     & 12 & 2 & 16.7  & NORMAL    & NORMAL \\
+WEB    & externo & no     & 5  & 5 & 100.0 & BLOQUEADO & BLOQUEADO \\
+WEB    & interno & no     & 4  & 5 & N/D   & DATOS INVALIDOS & DATOS INVALIDOS \\
+WEB    & interno & no     & 0  & 0 & N/D   & DATOS INVALIDOS & DATOS INVALIDOS \\
+CORREO & local   & no     & 10 & 2 & N/D   & DATOS INVALIDOS & DATOS INVALIDOS \\
+WEB    & externo & quizás & 10 & 2 & N/D   & DATOS INVALIDOS & DATOS INVALIDOS \\
+\bottomrule
+\end{tabular}
+\caption{Casos de prueba obligatorios.}
+\end{table}
+
+\subsection{Casos límite}
+\begin{itemize}[nosep]
+  \item Entradas con espacios y mayúsculas, como \texttt{"\ EXTERNO\ "} y \texttt{"\ SI\ "}, se interpretan como \texttt{externo} y \texttt{si} gracias a \texttt{trim()} y \texttt{equalsIgnoreCase()}.
+  \item Un nombre formado solo por espacios se rechaza como inválido.
+  \item Con \texttt{intentosTotales = 0} el porcentaje no se calcula, por lo que no hay división por cero.
+  \item Con 5 fallos sobre 5 intentos (extremo incluido) los datos son válidos y el porcentaje es 100.0\%.
+\end{itemize}
+
+% =====================================================
+\section{Cumplimiento de las restricciones}
+\begin{itemize}[nosep]
+  \item Un único archivo \texttt{Main.java} con \texttt{class Servidor} y \texttt{public class Main}.
+  \item Sin arrays, \texttt{ArrayList}, colecciones ni herencia.
+  \item Sin constructores personalizados: los atributos se asignan después de \texttt{new Servidor()}.
+  \item Sin modificadores de encapsulación (\texttt{private}, \texttt{public} en atributos, \textit{getters}/\textit{setters}).
+  \item Los datos numéricos se introducen como enteros.
+\end{itemize}
+
+% =====================================================
+\section{Preguntas conceptuales}
+
+\paragraph{1. ¿Por qué dos objetos de la misma clase pueden almacenar valores diferentes en sus atributos?}
+Porque la clase es solo la plantilla que define qué atributos existen. Cada
+objeto creado con \texttt{new} reserva su propia zona de memoria, con su propia
+copia de los atributos, por lo que modificar uno no afecta al otro.
+
+\paragraph{2. ¿Qué diferencia existe entre \texttt{Servidor b = a;} y \texttt{Servidor b = new Servidor();}?}
+\texttt{Servidor b = a;} no crea ningún objeto nuevo: copia la referencia, de
+modo que \texttt{a} y \texttt{b} apuntan al mismo objeto y un cambio hecho
+desde \texttt{b} se ve desde \texttt{a}. \texttt{Servidor b = new Servidor();}
+crea un objeto nuevo e independiente, con sus propios atributos.
+
+\paragraph{3. ¿Por qué es importante comprobar \texttt{datosValidos()} antes de calcular el porcentaje?}
+Porque con datos inválidos el cálculo no tiene sentido o falla: si
+\texttt{intentosTotales} es 0 se produciría una división por cero, y si los
+fallidos son negativos o mayores que el total el porcentaje sería incoherente
+(negativo o superior al 100\%).
+
+% =====================================================
+\section{Conclusiones}
+El programa cumple los requisitos del enunciado: separa responsabilidades en
+una clase \texttt{Servidor} con métodos propios, valida los datos antes de
+clasificarlos, respeta el orden de prioridad de las reglas, trata de forma
+segura los datos inválidos y compara los dos servidores mediante condiciones y
+no con respuestas fijas. El uso de \texttt{nextLine()} con conversión a entero y
+de \texttt{trim()}/\texttt{equalsIgnoreCase()} hace la entrada robusta frente a
+espacios y mayúsculas.
+
+\end{document}
